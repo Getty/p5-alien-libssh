@@ -1,0 +1,5 @@
+Revision history for Alien-libssh
+
+{{$NEXT}}
+  - Initial release
+  - Provides libssh via pkg-config (system) or CMake build (share)
