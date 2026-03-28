@@ -1,7 +1,7 @@
 use alienfile;
 
 # Prefer the system libssh if pkg-config can find it.
-# Falls back to building from source if not present.
+# Falls back to building from the bundled source tarball.
 
 probe [ 'pkg-config --exists libssh' ];
 
@@ -18,8 +18,7 @@ sys {
 };
 
 share {
-  start_url 'https://www.libssh.org/files/0.10/libssh-0.10.6.tar.xz';
-  plugin 'Download';
+  start_url 'file://' . meta->root . '/share/libssh-0.10.6.tar.xz';
   plugin 'Extract' => 'tar.xz';
   plugin 'Build::CMake';
 
