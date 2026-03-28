@@ -1,4 +1,5 @@
 use alienfile;
+use Path::Tiny;
 
 # Prefer the system libssh if pkg-config can find it.
 # Falls back to building from the bundled source tarball.
@@ -18,7 +19,7 @@ sys {
 };
 
 share {
-  start_url 'file://' . meta->root . '/share/libssh-0.10.6.tar.xz';
+  start_url 'file://' . Path::Tiny->cwd->child('share/libssh-0.10.6.tar.xz')->stringify;
   plugin 'Extract' => 'tar.xz';
   plugin 'Build::CMake';
 
