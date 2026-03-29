@@ -1,7 +1,7 @@
 # ABSTRACT: Find or build libssh, the SSH library
 
 package Alien::libssh;
-
+our $VERSION = '0.002';
 use strict;
 use warnings;
 use parent 'Alien::Base';
