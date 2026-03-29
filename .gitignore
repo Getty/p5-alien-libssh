@@ -3,3 +3,20 @@ Alien-libssh-*/
 *.tar.gz
 blib/
 _alien/
+AGENTS.md
+
+# Claude Code — keep skills/, agents/, hooks/, settings.json
+.claude/*
+!.claude/settings.json
+!.claude/agents/
+!.claude/agents/**
+!.claude/skills/
+!.claude/skills/**
+!.claude/hooks/
+!.claude/hooks/**
+.claude/*.local.*
+.claude/local/
+.claude/.credentials.json
+.claude/statsig/
+.claude/todos/
+.claude/projects/
