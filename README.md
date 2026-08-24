@@ -2,7 +2,7 @@
 
 [Alien](https://metacpan.org/pod/Alien::Base) wrapper for [libssh](https://www.libssh.org/) — the C SSH library.
 
-Provides `libssh` for CPAN modules that need to link against it. First checks whether a system `libssh` is available via `pkg-config`; if not, it downloads and builds libssh from source using CMake.
+Provides `libssh` for CPAN modules that need to link against it. First checks whether a system `libssh` is available via `pkg-config`; if not, it builds the bundled libssh source with CMake — no network access needed.
 
 ## Synopsis
 

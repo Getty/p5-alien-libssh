@@ -22,7 +22,8 @@ L<Alien::libssh> provides the C library L<libssh|https://www.libssh.org/>
 for use by other CPAN modules that need to link against it.
 
 It first checks whether a system C<libssh> is available via C<pkg-config>.
-If not, it downloads and builds libssh from source using CMake.
+If not, it builds the bundled libssh source with CMake; no network access
+is required.
 
 =head1 SEE ALSO
 

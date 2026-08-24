@@ -3,33 +3,73 @@ use Path::Tiny;
 
 # Prefer the system libssh if pkg-config can find it.
 # Falls back to building from the bundled source tarball.
+#
+# PkgConfig does probe and gather in one, for both paths: against the system
+# library on the sys path, and against the libssh.pc the share build installs
+# into the prefix on the share path. The hand-rolled `probe` plus a `sys`-only
+# gather covered just the first of those, so a share install finished with no
+# cflags, no libs and no version -- Alien::libssh->cflags came back empty and
+# anything compiling against it could not find libssh/libssh.h.
 
-probe [ 'pkg-config --exists libssh' ];
-
-sys {
-  gather sub {
-    my ($build) = @_;
-    chomp( my $cflags  = `pkg-config --cflags      libssh` );
-    chomp( my $libs    = `pkg-config --libs         libssh` );
-    chomp( my $version = `pkg-config --modversion   libssh` );
-    $build->runtime_prop->{cflags}  = $cflags;
-    $build->runtime_prop->{libs}    = $libs;
-    $build->runtime_prop->{version} = $version;
-  };
-};
+plugin 'PkgConfig' => (
+  pkg_name => 'libssh',
+);
 
 share {
   start_url 'file://' . Path::Tiny->cwd->child('share/libssh-0.10.6.tar.xz')->stringify;
+
+  # start_url alone does nothing: without a fetch hook Alien::Build reaches the
+  # download phase with no way to act on it and dies with "No hooks registered
+  # for fetch", so the advertised fallback never existed on a box without a
+  # system libssh.
+  plugin 'Fetch::Local';
   plugin 'Extract' => 'tar.xz';
   plugin 'Build::CMake';
 
+  # libssh refuses to configure in its own source tree
+  # (cmake/Modules/MacroEnsureOutOfSourceBuild.cmake compares CMAKE_SOURCE_DIR
+  # against CMAKE_BINARY_DIR). Build::CMake builds in the extracted directory
+  # itself unless told otherwise, which is why the source path used to be '..'
+  # -- a directory nothing ever created or changed into.
+  meta->prop->{out_of_source} = 1;
+
+  # One command. A flat list is a sequence of separate commands to
+  # Alien::Build, so the arguments were each exec'd as a program of their own;
+  # and the make steps were absent, leaving a configure that built nothing.
+  # plugin_build_cmake.args carries the generator, PIC, install prefix and
+  # libdir, so only the libssh-specific switches are spelled out here.
   build [
-    '%{cmake}',
-    '-DCMAKE_INSTALL_PREFIX=%{.install.prefix}',
-    '-DCMAKE_BUILD_TYPE=Release',
-    '-DWITH_EXAMPLES=OFF',
-    '-DWITH_PCAP=OFF',
-    '-DWITH_GSSAPI=OFF',
-    '..',
+    [ '%{cmake}',
+      @{ meta->prop->{plugin_build_cmake}->{args} },
+      '-DCMAKE_BUILD_TYPE=Release',
+      # Static, because a share install puts libssh.so where the runtime
+      # linker does not look: the XS test compiled fine against the prefix and
+      # then died on `libssh.so.4: cannot open shared object file`, which is
+      # exactly what Net::LibSSH (also XS) would do at use time.
+      '-DBUILD_SHARED_LIBS=OFF',
+      '-DWITH_EXAMPLES=OFF',
+      '-DWITH_PCAP=OFF',
+      '-DWITH_GSSAPI=OFF',
+      '%{.install.extract}',
+    ],
+    '%{make}',
+    '%{make} install',
   ];
+
+  # libssh generates its libssh.pc with a bare `Libs: -L${libdir} -lssh` and no
+  # Libs.private, so a static build hands the consumer a link line that omits
+  # everything libssh itself pulls in: linking with just -lssh compiles and then
+  # dies on `undefined symbol: EVP_PKEY_CTX_new`. libssh is built against
+  # OpenSSL here (WITH_GCRYPT and WITH_MBEDTLS both default off) and with zlib
+  # (WITH_ZLIB defaults on), so those are the two to declare. This hooks after
+  # gather rather than being a plain gather, because PkgConfig registers its
+  # own and would otherwise run last and put the bare .pc line back.
+  after 'gather' => sub {
+    my ($build) = @_;
+    for my $key (qw( libs libs_static )) {
+      my $v = $build->runtime_prop->{$key} // '';
+      next if $v =~ /-lcrypto\b/;
+      $build->runtime_prop->{$key} = join ' ', grep { length } $v, '-lcrypto', '-lz';
+    }
+  };
 };

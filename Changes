@@ -1,6 +1,11 @@
 Revision history for Alien-libssh
 
 {{$NEXT}}
+  - Fix the share build: register Fetch::Local so the bundled tarball is
+    actually used, build out-of-source, run make and make install
+  - Build the share libssh static and append -lcrypto -lz to the link line
+    so XS consumers load without a runtime libssh.so
+  - Gather cflags/libs via the PkgConfig plugin on both install paths
 
 0.001     2026-03-29 02:38:55Z
   - Initial release
