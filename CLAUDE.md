@@ -11,7 +11,8 @@ Alien::libssh follows the Alien::Build pattern:
 
 ## Used By
 
-- `Net::LibSSH` (XS binding) — links against libssh at build time
+- `Net::LibSSH` (XS binding, `~/dev/p5-net-libssh`) — links against libssh at
+  build time via `Alien::libssh->cflags` and `->libs`
 
 ## Bundled Source
 
@@ -22,18 +23,56 @@ required during `cpanm` install — suitable for air-gapped environments.
 
 Uses `[@Author::GETTY]` Dist::Zilla bundle with `alien_build = 1`.
 
-Build requirements:
+Share-build requirements:
 - `cmake` (libssh uses CMake)
 - C compiler
 - `pkg-config` (for system lib detection)
+- OpenSSL and zlib headers (libssh links both; the static share build needs
+  the consumer to link them too)
 
 ## alienfile
 
-The `alienfile` at the root defines the probe/build/install steps. Uses
-`Alien::Build::Plugin::Build::CMake`.
+The `alienfile` at the root defines the probe/build/install steps. The
+`PkgConfig` plugin probes and gathers on both paths; the share path is an
+out-of-source static CMake build (`Build::CMake`) with an `after 'gather'`
+hook that appends `-lcrypto -lz` to the link line. Every non-obvious line
+carries a comment saying why — read them before changing it.
 
-## Key Details
+## Verification
 
-- System install is preferred (faster, uses distro security patches)
-- Share install builds a static lib in the local Alien dir
-- `Alien::libssh->cflags` and `->libs` used by `Net::LibSSH`'s `Makefile.PL`
+```bash
+dzil test                                  # whatever the probe decides
+env ALIEN_INSTALL_TYPE=share  dzil test    # forced bundled build
+env ALIEN_INSTALL_TYPE=system dzil test    # forced probe
+```
+
+`prove -l t` builds nothing and is not a test. Anything touching the alienfile
+runs both forced paths.
+
+## Delegation
+
+Delegate behavior-relevant work to the right agent instead of touching it yourself —
+principle and lane are in `.claude/rules/alien-libssh-rules.md`.
+
+| Task | Agent |
+|---|---|
+| alienfile, `share/` tarball, `t/`, `lib/Alien/`, POD | `alien-libssh-worker` (default) |
+| Pre-release audit before a CPAN release | `alien-libssh-release-checker` |
+
+The agents carry their skills via `briefing.skills` (see `.claude/agents/`); the main
+agent delegates rather than loading them. Tickets live on the repo's `karr` board.
+
+## Skills
+
+`alien-libssh-core` is project-owned; every other skill under `.claude/skills/` is a
+hardlink into the shared library — `manage-skills sync` re-establishes the links after a
+fresh clone, and a hardlinked `SKILL.md` is edited in place, never with `Edit`/`Write`.
+
+| Skill | Covers |
+|---|---|
+| `alien-libssh-core` | this distribution: the two paths, the static build, the `-lcrypto -lz` line, the consumer |
+| `perl-alien` | Alien::Build itself: `probe`/`share`, `PkgConfig`, `install_prop` vs `runtime_prop`, `Test::Alien` |
+| `perl-xs` | the Perl/C boundary — `t/01-alien.t` compiles XS, and `Net::LibSSH` is XS |
+| `getty-perl-core` | house Perl conventions |
+| `getty-perl-release-author-getty`, `perl-release-dist-ini` | the `[@Author::GETTY]` bundle and `dist.ini` |
+| `kanban-issues-karr-cli` | the karr board |

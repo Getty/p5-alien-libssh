@@ -12,6 +12,8 @@
 !.claude/skills/**
 !.claude/hooks/
 !.claude/hooks/**
+!.claude/rules/
+!.claude/rules/**
 
 # Local overrides (machine-specific)
 .claude/*.local.*
@@ -78,3 +80,9 @@ AGENTS.md
 !.claude/skills/**
 !.claude/hooks/
 !.claude/hooks/**
+!.claude/rules/
+!.claude/rules/**
+
+# karr materialized task view -- never commit
+tasks/
+config.yml
