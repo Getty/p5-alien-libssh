@@ -11,6 +11,25 @@ use Path::Tiny;
 # cflags, no libs and no version -- Alien::libssh->cflags came back empty and
 # anything compiling against it could not find libssh/libssh.h.
 
+# Author release only: force the bundled share build so the shipped offline
+# fallback is exercised on every `dzil release` (TestRelease), even on a host
+# that has a system libssh. RELEASE_TESTING marks the author release;
+# !AUTOMATED_TESTING excludes thorough CPAN smokers, which set BOTH flags --
+# they must keep probing for their own system libssh, not build share.
+#
+# This is the `override` hook (what ALIEN_INSTALL_TYPE drives), NOT a `probe`
+# hook, on purpose: Alien::Build runs override before the probe hooks and lets
+# 'share' win outright, whereas a probe returning 'share' only defers to the
+# next probe -- PkgConfig would then still pick a present system lib, and the
+# fallback would go untested at release. Registering override replaces
+# Core::Override's default, so ALIEN_INSTALL_TYPE is re-checked here first to
+# keep the forced-path runs (share/system) and any user override working.
+meta->register_hook( override => sub {
+  return $ENV{ALIEN_INSTALL_TYPE} if $ENV{ALIEN_INSTALL_TYPE};
+  return 'share' if $ENV{RELEASE_TESTING} && !$ENV{AUTOMATED_TESTING};
+  return '';
+});
+
 plugin 'PkgConfig' => (
   pkg_name => 'libssh',
 );

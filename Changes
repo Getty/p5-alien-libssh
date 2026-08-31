@@ -6,6 +6,10 @@ Revision history for Alien-libssh
   - Build the share libssh static and append -lcrypto -lz to the link line
     so XS consumers load without a runtime libssh.so
   - Gather cflags/libs via the PkgConfig plugin on both install paths
+  - Force the share build during author release testing (RELEASE_TESTING,
+    excluding CPAN smokers via AUTOMATED_TESTING) so the shipped offline
+    fallback is exercised on every dzil release, even on hosts that have a
+    system libssh
 
 0.001     2026-03-29 02:38:55Z
   - Initial release
