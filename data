@@ -1,0 +1,15 @@
+---
+claimed_at: 2026-08-31T22:55:32Z
+claimed_by: main
+class: standard
+completed: 2026-08-31T22:55:32Z
+created: 2026-08-31T22:46:11Z
+id: 2
+priority: high
+started: 2026-08-31T22:47:07Z
+status: done
+title: 'alienfile: RELEASE_TESTING forciert share-Pfad im Release-Test'
+updated: 2026-08-31T22:55:32Z
+---
+
+2026-08-31 22:53 alienfile: override hook forces share when RELEASE_TESTING && !AUTOMATED_TESTING (runs before PkgConfig probe). Verified: ALIEN_INSTALL_TYPE=share green (builds libssh.a, t/01-alien.t ok); =system dies loudly at 'pkgconf --exists' (no system lib on host, by design); RELEASE_TESTING=1 forces share (NO system probe before cmake, real libssh cmake build in logs); unforced dzil test + RELEASE_TESTING+AUTOMATED_TESTING smoker unchanged (system probe still runs). ALIEN_INSTALL_TYPE keeps precedence. Only alienfile changed; Changes untouched per request.
