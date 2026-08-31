@@ -1,0 +1,86 @@
+---
+claimed_at: 2026-08-23T18:52:17Z
+claimed_by: goes-palm
+class: standard
+completed: 2026-08-31T15:33:02Z
+created: 2026-08-20T00:58:53Z
+id: 1
+priority: high
+started: 2026-08-23T18:51:38Z
+status: done
+tags:
+- build
+- alienfile
+title: 'Share build is dead: alienfile sets start_url but registers no fetch plugin'
+updated: 2026-08-31T15:33:06Z
+---
+
+Alien::libssh 0.001 cannot install on a machine without a system libssh, so the fallback the alienfile advertises does not exist in practice.
+
+Reproduced 2026-08-19 on a box with no libssh and no /usr/include/libssh:
+
+  $ cpanm Alien::libssh
+  Alien::Build> error in probe (will do a share install): external command failed
+  Alien::Build> Don't panic, we will attempt a share build from source if possible.
+  ...
+  "/usr/bin/perl" -MAlien::Build::MM=cmd -e download
+  No hooks registered for fetch at Alien/Build.pm line 444.
+  make: *** [Makefile:947: _alien/mm/download] Error 2
+
+Cause: the share block sets
+
+  start_url "file://" . Path::Tiny->cwd->child("share/libssh-0.10.6.tar.xz")
+
+and then loads only Extract and Build::CMake. Nothing registers a fetch hook, so
+Alien::Build reaches the download phase with no way to act on start_url. The
+tarball itself IS shipped in the CPAN dist (share/libssh-0.10.6.tar.xz, 561036
+bytes) -- the file is fine, the plugin wiring is missing.
+
+Likely fix: load a fetch/download plugin in the share block (e.g. plugin
+Download => () or an explicit Fetch::LocalDir), then verify with a probe that is
+forced to fail, e.g. PKG_CONFIG_PATH=/nonexistent cpanm --look Alien::libssh, so
+the share path is actually exercised rather than skipped by a system install.
+
+Workaround used downstream in the meantime: build libssh 0.10.6 from the bundled
+tarball by hand into a prefix and point PKG_CONFIG_PATH at it, which makes the
+system probe succeed.
+
+Found while unblocking the Net::LibSSH board (p5-net-libssh), which is unbuildable
+without a working Alien::libssh.
+
+
+
+--- 2026-08-23: behoben ---
+Vier Fehler uebereinander, jeder erst sichtbar als der davor weg war:
+
+1. start_url ohne Fetch-Hook -> plugin "Fetch::Local"
+2. build als flache Liste: Alien::Build las jedes cmake-Argument als eigenes
+   Kommando und versuchte -DCMAKE_INSTALL_PREFIX=... zu exec-en; make und
+   make install fehlten ganz -> verschachtelte Form plus Make-Schritte
+3. libssh erzwingt out-of-source (MacroEnsureOutOfSourceBuild vergleicht
+   CMAKE_SOURCE_DIR mit CMAKE_BINARY_DIR). Daher stand da ".." -- ein
+   Verzeichnis, das nichts anlegte und in das nichts wechselte
+   -> meta->prop->{out_of_source} = 1
+4. probe plus sys-only-gather: der Share-Pfad endete ohne cflags, libs und
+   version -> plugin "PkgConfig" macht Probe und Gather fuer beide Pfade
+
+Danach zwei Folgefehler:
+5. dynamisch gebaut fand der XS-Konsument libssh.so.4 zur Laufzeit nicht
+   -> BUILD_SHARED_LIBS=OFF
+6. libssh schreibt seine .pc ohne Libs.private, statisch fehlte dann OpenSSL
+   (undefined symbol: EVP_PKEY_CTX_new) -> after "gather" haengt -lcrypto -lz an
+
+Belegt: install_type share, libssh 0.10.6, libssh.a, und Net::LibSSH 0.003
+baut und laedt gegen diesen Alien. GitHub-Issue #1 beschreibt dasselbe und ist
+damit ebenfalls erledigt -- Antwort an den Melder steht noch aus.
+
+--- 2026-08-31: Review-Verifikation (goes-palm) ---
+Fetch-Plugin ist drin: share-Block registriert 'plugin Fetch::Local' (Commit 7a38329 'Fix the share build in the alienfile'), plus die Folgefixe (out_of_source=1, BUILD_SHARED_LIBS=OFF, after 'gather' haengt -lcrypto -lz an).
+
+Verifiziert auf diesem Host:
+- env ALIEN_INSTALL_TYPE=share dzil test -> PASS. Bundled tarball via Fetch::Local geholt, extrahiert, CMake-Build zu libssh.a (libssh 0.10.6, statisch). t/01-alien.t gruen inkl. xs_ok -- der xs_ok-Link gegen die Alien-Flags beweist, dass -lcrypto -lz greift (sonst undefined symbol EVP_PKEY_CTX_new). Kein 'No hooks registered for fetch' mehr.
+- env ALIEN_INSTALL_TYPE=system dzil test -> Probe faellt (pkgconf --exists libssh), erwartet: kein System-libssh auf diesem Host.
+
+Netz+Compiler waren verfuegbar (cc, Alien::cmake3, OpenSSL/zlib-Header), also war der echte Share-Build durchfuehrbar. Bleibt in review.
+
+Fetch::Local-Fix verifiziert (dzil test PASS), dzil install nach ~/perl5 -> Alien-libssh 0.002. GH#1 (No hooks registered for fetch) ist damit lokal erledigt (schliessbar nach Bestaetigung).
