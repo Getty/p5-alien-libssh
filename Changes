@@ -1,5 +1,7 @@
 Revision history for Alien-libssh
 
+{{$NEXT}}
+
 0.002     2026-09-01 00:02:49Z
   - Fix the share build: register Fetch::Local so the bundled tarball is
     actually used, build out-of-source, run make and make install
