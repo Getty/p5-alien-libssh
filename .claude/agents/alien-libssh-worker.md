@@ -2,7 +2,6 @@
 name: alien-libssh-worker
 description: "Default Alien::libssh worker — implement, refactor, debug and test everything in this single CPAN distribution: the alienfile (PkgConfig probe + static CMake share build), the bundled libssh tarball, t/01-alien.t, POD and README. Pre-loaded with the two install paths, the out-of-source/static/-lcrypto rules and the Alien::Build conventions. Use for any change under alienfile, share/, t/ or lib/Alien/. Leaves a commit-ready tree; never commits — commits belong to alien-libssh-release-manager."
 model: inherit
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep
 briefing:
   skills:
     - alien-libssh-core

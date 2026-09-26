@@ -2,7 +2,6 @@
 name: alien-libssh-release-manager
 description: "Owns alien-libssh's commits and release readiness — cuts commits from the worker's commit-ready tree, writes commit messages and Changes entries, moves karr cards to done. Release audit: Alien::libssh before a CPAN release — cpanfile phases for an Alien dist (configure + build), dist.ini alien_build, Changes/{{$NEXT}} against the diff, both install paths green, the static link line carrying -lcrypto -lz, and the bundled tarball name consistent across alienfile, README, CLAUDE.md and the core skill. Workers never commit; this agent does. Never pushes, tags or releases."
 model: sonnet
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep
 briefing:
   skills:
     - getty-git-commit-style
