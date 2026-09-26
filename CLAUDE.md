@@ -57,7 +57,7 @@ principle and lane are in `.claude/rules/alien-libssh-rules.md`.
 | Task | Agent |
 |---|---|
 | alienfile, `share/` tarball, `t/`, `lib/Alien/`, POD | `alien-libssh-worker` (default) |
-| Pre-release audit before a CPAN release | `alien-libssh-release-checker` |
+| Commits, `Changes`, card → done, pre-release audit | `alien-libssh-release-manager` |
 
 The agents carry their skills via `briefing.skills` (see `.claude/agents/`); the main
 agent delegates rather than loading them. Tickets live on the repo's `karr` board.
@@ -75,4 +75,4 @@ fresh clone, and a hardlinked `SKILL.md` is edited in place, never with `Edit`/`
 | `perl-xs` | the Perl/C boundary — `t/01-alien.t` compiles XS, and `Net::LibSSH` is XS |
 | `getty-perl-core` | house Perl conventions |
 | `getty-perl-release-author-getty`, `perl-release-dist-ini` | the `[@Author::GETTY]` bundle and `dist.ini` |
-| `kanban-issues-karr-cli` | the karr board |
+| `kanban-issues-karr-coordination` | the karr board |
