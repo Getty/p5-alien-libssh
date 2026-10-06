@@ -1,0 +1,24 @@
+---
+class: standard
+created: 2026-10-06T19:40:37Z
+id: 3
+priority: medium
+status: backlog
+tags:
+- alien
+- security
+- build
+- review-2026-10-06
+title: Bundled libssh 0.10.6 is a full release line behind; system probe has no version
+  floor
+updated: 2026-10-06T19:40:37Z
+---
+
+`alienfile:38` builds the share fallback from `share/libssh-0.10.6.tar.xz` (released December 2023) and links it **statically** into every XS consumer (`-DBUILD_SHARED_LIBS=OFF`, `alienfile:68`). A static bundle is never updated by the OS, so everything upstream fixed after 0.10.6 stays inside `Net::LibSSH` until this dist ships a newer tarball. Upstream has since moved to the 0.11 line, including security releases during 2025 - to be confirmed against the advisories on libssh.org; this review ran without network, hence `plausible`.
+
+The system path has the mirror problem: `plugin 'PkgConfig' => ( pkg_name => 'libssh' )` (`alienfile:33-35`) sets no `minimum_version`, so any libssh is accepted however old, while `Net::LibSSH` calls the known-hosts API that only exists from 0.9 (`ssh_session_is_known_server`, `ssh_session_update_known_hosts`).
+
+Done when: the bundled tarball is the current stable libssh, the share build and `t/01-alien.t` pass with `ALIEN_INSTALL_TYPE=share`, the probe carries a `minimum_version` matching what Net::LibSSH actually calls, and the test notes/asserts the version of the library it linked.
+
+---
+Fleet review 2026-10-06 · kind: improvement · confidence: plausible
