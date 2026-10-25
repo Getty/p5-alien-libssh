@@ -20,6 +20,9 @@
       "perl-alien@getty",
       "perl-release-dist-ini@getty",
       "perl-xs@getty"
+    ],
+    "bundles": [
+      "getty-cpan-dist@getty"
     ]
   },
   "targets": [
