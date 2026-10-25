@@ -1,6 +1,12 @@
 Revision history for Alien-libssh
 
 {{$NEXT}}
+  - Bundle libssh 0.12.2 (was 0.10.6) so the statically linked fallback
+    carries the upstream security fixes released since
+  - Accept a system libssh only from 0.9.0 on, the first release with the
+    known-hosts API Net::LibSSH calls
+  - Test reports the version of the libssh it linked and checks it against
+    the probe floor and the bundled tarball
 
 0.002     2026-09-01 00:02:49Z
   - Fix the share build: register Fetch::Local so the bundled tarball is

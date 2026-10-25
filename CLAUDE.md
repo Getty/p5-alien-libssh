@@ -16,7 +16,7 @@ Alien::libssh follows the Alien::Build pattern:
 
 ## Bundled Source
 
-The distribution ships `libssh-0.10.6.tar.xz` in `share/`. No network access
+The distribution ships `libssh-0.12.2.tar.xz` in `share/`. No network access
 required during `cpanm` install — suitable for air-gapped environments.
 
 ## Build Config

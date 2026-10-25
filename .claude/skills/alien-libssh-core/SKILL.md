@@ -17,10 +17,10 @@ holds only what is true about *this* distribution.
 
 One job: make libssh available to Perl, over two paths.
 
-- **system** — `plugin 'PkgConfig' => (pkg_name => 'libssh')`. No
-  `minimum_version`: every current distro libssh is new enough for
-  `Net::LibSSH`.
-- **share** — CMake build of `share/libssh-0.10.6.tar.xz`, no network
+- **system** — `plugin 'PkgConfig' => (pkg_name => 'libssh', minimum_version
+  => '0.9.0')`. 0.9.0 is where the known-hosts API `Net::LibSSH` calls
+  (`ssh_session_is_known_server`) appears; `t/01-alien.t` asserts the same floor.
+- **share** — CMake build of `share/libssh-0.12.2.tar.xz`, no network
   (`Fetch::Local` + a `file://` `start_url` built with `Path::Tiny->cwd`).
   Offline install is a promise this distribution makes; never add a network
   `start_url`, never a second tarball.
