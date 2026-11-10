@@ -34,11 +34,9 @@ Never `git commit`: leave the tree commit-ready and report what changed and why,
   (`settings.json`, `agents/`, `skills/`, `rules/`, `hooks/`). A new directory
   under `.claude/` is invisible to git until whitelisted — check
   `git status --short` after adding one.
-- **Skill files under `.claude/skills/` are hardlinks** into the shared
-  library. Editing one with `Edit`/`Write` detaches the inode and silently
-  forks every other repo's copy; rewrite in place (`cat > path <<'EOF'`)
-  instead. `alien-libssh-core` is project-owned and unlinked — normal edits
-  are fine there.
+- **Shared skills under `.claude/skills/` are installed by skilletor** and
+  re-rendered on every sync; a change one of them needs goes as a note on your
+  card. The project-owned `alien-libssh-core` is edited here.
 - **No CI workflows yet.** When one is added, every job pins
   `install-type:` — an unpinned job silently tests the other path.
 

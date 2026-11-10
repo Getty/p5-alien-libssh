@@ -65,9 +65,8 @@ agent delegates rather than loading them. Tickets live on the repo's `karr` boar
 
 ## Skills
 
-`alien-libssh-core` is project-owned; every other skill under `.claude/skills/` is a
-hardlink into the shared library — `manage-skills sync` re-establishes the links after a
-fresh clone, and a hardlinked `SKILL.md` is edited in place, never with `Edit`/`Write`.
+`alien-libssh-core` is project-owned; every other skill under `.claude/skills/` is
+installed by skilletor from `.claude/skilletor.json` and changes in its source repo.
 
 | Skill | Covers |
 |---|---|
