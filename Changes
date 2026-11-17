@@ -1,5 +1,7 @@
 Revision history for Alien-libssh
 
+{{$NEXT}}
+
 0.003     2026-11-17 04:34:08Z
   - Bundle libssh 0.12.2 (was 0.10.6) so the statically linked fallback
     carries the upstream security fixes released since
